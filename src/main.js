@@ -19,7 +19,12 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.style.width = rect.width + 'px';
         canvas.style.height = rect.height + 'px';
 
-        // Scale the drawing context so everything draws at the correct size
+        // Reset any existing transform then scale for high-DPI correctly
+        if (ctx.resetTransform) {
+            ctx.resetTransform();
+        } else {
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+        }
         ctx.scale(dpr, dpr);
     }
 
@@ -29,6 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
+            // Ensure AudioContext is resumed (required in some browsers after user gesture)
+            audioCtx.resume().catch(e => console.warn('AudioContext resume failed:', e));
             const source = audioCtx.createMediaStreamSource(stream);
             const analyser = audioCtx.createAnalyser();
             analyser.fftSize = 2048;
